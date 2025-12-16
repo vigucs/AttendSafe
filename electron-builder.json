@@ -1,0 +1,19 @@
+{
+    "appId": "com.attend.safe",
+    "productName": "AttendSafe",
+    "directories": {
+        "output": "dist-electron"
+    },
+    "files": [
+        "dist/**/*",
+        "dist-electron/**/*",
+        "package.json"
+    ],
+    "win": {
+        "target": "nsis"
+    },
+    "nsis": {
+        "oneClick": false,
+        "allowToChangeInstallationDirectory": true
+    }
+}
