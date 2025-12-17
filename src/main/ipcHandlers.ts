@@ -12,14 +12,14 @@ export function registerHandlers() {
 
     ipcMain.handle('add-subject', (_, subject) => {
         const id = randomUUID();
-        const stmt = db.prepare('INSERT INTO subjects (id, name, total_classes, attended_classes, min_required_percent) VALUES (?, ?, ?, ?, ?)');
-        stmt.run(id, subject.name, subject.total_classes, subject.attended_classes, subject.min_required_percent);
+        const stmt = db.prepare('INSERT INTO subjects (id, name, total_classes, attended_classes, min_required_percent, semester_total_classes) VALUES (?, ?, ?, ?, ?, ?)');
+        stmt.run(id, subject.name, subject.total_classes, subject.attended_classes, subject.min_required_percent, subject.semester_total_classes || 0);
         return { ...subject, id };
     });
 
     ipcMain.handle('update-subject', (_, subject) => {
-        const stmt = db.prepare('UPDATE subjects SET name = ?, total_classes = ?, attended_classes = ?, min_required_percent = ? WHERE id = ?');
-        stmt.run(subject.name, subject.total_classes, subject.attended_classes, subject.min_required_percent, subject.id);
+        const stmt = db.prepare('UPDATE subjects SET name = ?, total_classes = ?, attended_classes = ?, min_required_percent = ?, semester_total_classes = ? WHERE id = ?');
+        stmt.run(subject.name, subject.total_classes, subject.attended_classes, subject.min_required_percent, subject.semester_total_classes || 0, subject.id);
         return subject;
     });
 

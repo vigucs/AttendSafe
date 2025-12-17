@@ -4,19 +4,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface AddSubjectModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onAdd: (name: string, total: number, attended: number, minReq: number) => void;
+    onAdd: (name: string, total: number, attended: number, minReq: number, semesterTotal: number) => void;
 }
 
 export const AddSubjectModal: React.FC<AddSubjectModalProps> = ({ isOpen, onClose, onAdd }) => {
     const [name, setName] = useState('');
     const [total, setTotal] = useState(0);
     const [attended, setAttended] = useState(0);
+    const [semesterTotal, setSemesterTotal] = useState(0);
     const [minReq, setMinReq] = useState(75);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (name && total >= 0 && attended >= 0 && minReq > 0) {
-            onAdd(name, total, attended, minReq);
+            onAdd(name, total, attended, minReq, semesterTotal || 0);
             onClose();
             // Reset
             setName('');
@@ -76,6 +77,19 @@ export const AddSubjectModal: React.FC<AddSubjectModalProps> = ({ isOpen, onClos
                                 </div>
 
                                 <div>
+                                    <label className="block text-sm font-medium mb-1">Total Classes in Semester (Predicted)</label>
+                                    <input
+                                        type="number"
+                                        value={semesterTotal}
+                                        onChange={(e) => setSemesterTotal(parseInt(e.target.value) || 0)}
+                                        className="w-full px-3 py-2 rounded-md bg-muted border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                                        min={total} // Cannot be less than classes held
+                                        placeholder="Optional (e.g. 50)"
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-1">Used to predict how many classes you can safely skip.</p>
+                                </div>
+
+                                <div>
                                     <label className="block text-sm font-medium mb-1">Min Required %</label>
                                     <input
                                         type="number"
@@ -89,6 +103,10 @@ export const AddSubjectModal: React.FC<AddSubjectModalProps> = ({ isOpen, onClos
 
                                 {attended > total && (
                                     <p className="text-xs text-red-500">Attended classes cannot exceed total classes.</p>
+                                )}
+
+                                {semesterTotal > 0 && semesterTotal < total && (
+                                    <p className="text-xs text-red-500">Semester total cannot be less than classes held.</p>
                                 )}
 
                                 <div className="flex gap-2 justify-end mt-6">

@@ -46,7 +46,12 @@ export const useAppStore = create<AppState>((set, get) => ({
             console.log('Fetched subjects:', subjects);
             // Calculate stats for each subject
             const subjectsWithStats = subjects.map((sub: Subject) => {
-                const stats = executeCalculations(sub.attended_classes, sub.total_classes, sub.min_required_percent);
+                const stats = executeCalculations(
+                    sub.attended_classes,
+                    sub.total_classes,
+                    sub.min_required_percent,
+                    sub.semester_total_classes
+                );
                 return { ...sub, ...stats };
             });
 
@@ -140,12 +145,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         try {
             await window.electronAPI.saveCollegeRules(rules);
             set({ collegeRules: rules });
-            // Re-calculate all subjects as min percent might have changed globally (if we use it globally)
-            // But currently each subject has its own min_required. 
-            // Maybe we should update all subjects' min_required if global changes?
-            // For now, let's assume global rule acts as default for new subjects 
-            // OR if the user explicitly wants to apply to all. 
-            // Let's just save it for now.
             await get().fetchSubjects();
         } catch (error) {
             console.error('Failed to update rules', error);
@@ -153,11 +152,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
     resetData: async () => {
-        // TODO: Implement cleaner in backend if needed
-        // For now just clear subjects?
-        // We need an IPC for 'clear-data'
         try {
-            // Loop delete (inefficient but works for now)
             const subjects = get().subjects;
             for (const sub of subjects) {
                 await window.electronAPI.deleteSubject(sub.id);

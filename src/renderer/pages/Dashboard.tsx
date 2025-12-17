@@ -3,14 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/renderer/store/useAppStore';
 import { SubjectCard } from '@/renderer/components/SubjectCard';
 import { CanSkipModal } from '@/renderer/components/CanSkipModal';
+import { AddSubjectModal } from '@/renderer/components/AddSubjectModal';
 import type { Subject } from '@/shared/types';
 import type { CalculationResult } from '@/renderer/utils/calculationEngine';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export const Dashboard: React.FC = () => {
-    const { subjects, overallAttendance, timetable, fetchSubjects, fetchTimetable, updateAttendance, setView } = useAppStore();
+    const { subjects, overallAttendance, timetable, fetchSubjects, fetchTimetable, addSubject, updateAttendance, setView } = useAppStore();
     const [skipModalSubject, setSkipModalSubject] = useState<(Subject & CalculationResult) | null>(null);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     useEffect(() => {
         fetchSubjects();
@@ -33,6 +35,16 @@ export const Dashboard: React.FC = () => {
         if (sub) {
             setSkipModalSubject(sub);
         }
+    };
+
+    const handleAddSubject = (name: string, total: number, attended: number, minReq: number, semesterTotal: number) => {
+        addSubject({
+            name,
+            total_classes: total,
+            attended_classes: attended,
+            min_required_percent: minReq,
+            semester_total_classes: semesterTotal
+        });
     };
 
     return (
@@ -58,6 +70,12 @@ export const Dashboard: React.FC = () => {
                         className="px-4 py-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
                     >
                         Settings
+                    </button>
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2"
+                    >
+                        <span>+</span> Add Subject
                     </button>
                 </div>
             </header>
@@ -119,6 +137,12 @@ export const Dashboard: React.FC = () => {
                 isOpen={!!skipModalSubject}
                 onClose={() => setSkipModalSubject(null)}
                 subject={skipModalSubject}
+            />
+
+            <AddSubjectModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onAdd={handleAddSubject}
             />
         </motion.div>
     );

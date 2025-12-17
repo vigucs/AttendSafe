@@ -1,9 +1,10 @@
 export interface Subject {
     id: string;
     name: string;
-    total_classes: number;
+    total_classes: number; // Classes held so far
     attended_classes: number;
     min_required_percent: number;
+    semester_total_classes?: number; // Total classes in the entire semester
 }
 
 export interface AttendanceLog {

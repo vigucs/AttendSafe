@@ -1,6 +1,6 @@
 export interface CalculationResult {
     currentPercent: number;
-    canSkip: number; // Number of classes one can miss safely
+    canSkip: number; // Number of classes one can miss based on Semester Total
     classesToRecover: number; // Number of consecutive classes needed to attend
     status: 'safe' | 'warning' | 'critical';
     dropAfterMiss: number | null; // Predicted % after missing 1 class
@@ -8,11 +8,12 @@ export interface CalculationResult {
 
 export const executeCalculations = (
     attended: number,
-    total: number,
-    minPercent: number
+    held: number,
+    minPercent: number,
+    semesterTotal: number = 0
 ): CalculationResult => {
     // Prevent division by zero
-    if (total === 0) {
+    if (held === 0) {
         return {
             currentPercent: 100,
             canSkip: 0,
@@ -22,52 +23,53 @@ export const executeCalculations = (
         };
     }
 
-    const currentPercent = (attended / total) * 100;
+    const currentPercent = (attended / held) * 100;
     const minFraction = minPercent / 100;
 
-    // Status logic
+    // Status logic (based on CURRENT progress)
     let status: 'safe' | 'warning' | 'critical' = 'safe';
     if (currentPercent < minPercent) {
         status = 'critical';
     } else if (currentPercent < minPercent + 5) {
-        // Arbitrary warning buffer of 5%
         status = 'warning';
     }
 
-    // Calculate "Can Skip" (Safety Margin)
-    // Formula: (attended) / (total + x) >= minFraction
-    // attended >= minFraction * (total + x)
-    // attended / minFraction >= total + x
-    // x <= (attended / minFraction) - total
+    // "Can Skip" Logic
     let canSkip = 0;
-    if (currentPercent >= minPercent) {
-        const maxTotal = attended / minFraction;
-        canSkip = Math.floor(maxTotal - total);
+
+    if (semesterTotal > 0 && semesterTotal >= held) {
+        // Calculation based on FIXED SEMESTER TOTAL
+        // Total allowable misses = floor(SemesterTotal * (1 - minFraction))
+        // Actual misses = Held - Attended
+        // Remaining Allowable Misses = Total Allowable Misses - Actual Misses
+        const totalAllowableMisses = Math.floor(semesterTotal * (1 - minFraction));
+        const actualMisses = held - attended;
+        canSkip = Math.max(0, totalAllowableMisses - actualMisses);
+    } else {
+        // Fallback: Infinite Horizon (Current logic)
+        // If I am safely above target, how many consecutive classes can I miss and stay above?
+        // (attended) / (held + x) >= minFraction
+        if (currentPercent >= minPercent) {
+            const maxHeld = attended / minFraction;
+            canSkip = Math.floor(maxHeld - held);
+        }
     }
 
-    // Calculate "Recovery Needed"
-    // Formula: (attended + x) / (total + x) >= minFraction
-    // attended + x >= minFraction * total + minFraction * x
-    // x - minFraction * x >= minFraction * total - attended
-    // x * (1 - minFraction) >= minFraction * total - attended
-    // x >= (minFraction * total - attended) / (1 - minFraction)
+    // "Recovery Needed" Logic (Short term recovery to get back to Green)
+    // Formula: (attended + x) / (held + x) >= minFraction
     let classesToRecover = 0;
     if (currentPercent < minPercent) {
-        // Avoid division by zero if minPercent is 100% (though improbable for recovery if already below)
         if (minFraction >= 1) {
-            // If min is 100% and we missed one, we can never reach 100% again mathematically if counting total history.
-            // But practically, user might want to know for 'next' classes. 
-            // For strict historical calc, it's impossible.
             classesToRecover = Infinity;
         } else {
-            const numerator = minFraction * total - attended;
+            const numerator = minFraction * held - attended;
             const denominator = 1 - minFraction;
             classesToRecover = Math.ceil(numerator / denominator);
         }
     }
 
     // Drop after missing next class
-    const dropAfterMiss = (attended / (total + 1)) * 100;
+    const dropAfterMiss = (attended / (held + 1)) * 100;
 
     return {
         currentPercent: parseFloat(currentPercent.toFixed(2)),

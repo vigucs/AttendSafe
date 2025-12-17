@@ -51,6 +51,13 @@ export function initDB() {
     );
   `);
 
+  // Migration: Add semester_total_classes if it doesn't exist
+  try {
+    db.prepare("ALTER TABLE subjects ADD COLUMN semester_total_classes INTEGER DEFAULT 0").run();
+  } catch (error) {
+    // Ignore error if column already exists
+  }
+
   return db;
 }
 
