@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/renderer/store/useAppStore';
+import { AppShell } from '@/renderer/components/AppShell';
+import { cn } from '@/renderer/utils/ui';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-export const TimetableEditor: React.FC = () => {
+interface TimetableEditorProps {
+    theme: 'light' | 'dark';
+    onToggleTheme: () => void;
+}
+
+export const TimetableEditor: React.FC<TimetableEditorProps> = ({ theme, onToggleTheme }) => {
     const { subjects, timetable, fetchSubjects, fetchTimetable, saveTimetable, setView } = useAppStore();
     const [schedule, setSchedule] = useState<{ day: string; subject_id: string }[]>([]);
 
@@ -36,58 +43,64 @@ export const TimetableEditor: React.FC = () => {
     };
 
     return (
-        <motion.div
-            className="p-8 max-w-7xl mx-auto pb-24"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-        >
-            <div className="flex justify-between items-center mb-8">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => setView('dashboard')}
-                        className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                        ← Back
-                    </button>
-                    <h1 className="text-3xl font-bold">Edit Timetable</h1>
-                </div>
-                <button
-                    onClick={handleSave}
-                    className="px-6 py-2 bg-primary text-primary-foreground font-semibold rounded-lg shadow-sm hover:bg-primary/90 transition-colors"
-                >
+        <AppShell
+            title="Timetable"
+            eyebrow="Weekly plan"
+            theme={theme}
+            onToggleTheme={onToggleTheme}
+            onBack={() => setView('dashboard')}
+            action={(
+                <button onClick={handleSave} className="btn btn-primary">
                     Save Changes
                 </button>
-            </div>
+            )}
+        >
+            <motion.div
+                className="space-y-6"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.3 }}
+            >
+                <section className="panel p-6">
+                    <p className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Schedule</p>
+                    <h2 className="mt-3 text-3xl font-bold tracking-tight">Pick the subjects you have each day.</h2>
+                    <p className="mt-3 max-w-2xl text-muted-foreground">
+                        Today uses this timetable to show only the classes that need a quick attendance update.
+                    </p>
+                </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {DAYS.map(day => (
-                    <div key={day} className="bg-card border rounded-xl p-4 shadow-sm">
-                        <h3 className="text-xl font-bold mb-4 border-b pb-2">{day}</h3>
+                    <div key={day} className="panel p-4">
+                        <h3 className="mb-4 border-b border-border pb-3 text-xl font-bold">{day}</h3>
                         <div className="space-y-2">
-                            {subjects.map(subject => {
+                            {subjects.length > 0 ? subjects.map(subject => {
                                 const isSelected = schedule.some(s => s.day === day && s.subject_id === subject.id);
                                 return (
-                                    <div
+                                    <button
+                                        type="button"
                                         key={subject.id}
                                         onClick={() => handleToggle(day, subject.id)}
-                                        className={`
-                                            p-3 rounded-lg border cursor-pointer flex items-center justify-between transition-all
-                                            ${isSelected
-                                                ? 'bg-primary/10 border-primary text-primary font-medium shadow-sm'
-                                                : 'bg-muted/50 border-transparent hover:bg-muted text-muted-foreground'}
-                                        `}
+                                        className={cn(
+                                            'flex w-full items-center justify-between rounded-md border p-3 text-left text-sm font-semibold transition-colors',
+                                            isSelected
+                                                ? 'border-primary bg-accent text-accent-foreground'
+                                                : 'border-transparent bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+                                        )}
                                     >
                                         <span>{subject.name}</span>
-                                        {isSelected && <span className="text-lg">✓</span>}
-                                    </div>
+                                        {isSelected && <span className="text-lg">Selected</span>}
+                                    </button>
                                 );
-                            })}
+                            }) : (
+                                <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">Add subjects before building a timetable.</p>
+                            )}
                         </div>
                     </div>
                 ))}
             </div>
-        </motion.div>
+            </motion.div>
+        </AppShell>
     );
 };

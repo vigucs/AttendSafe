@@ -4,12 +4,19 @@ import { useAppStore } from '@/renderer/store/useAppStore';
 import { SubjectCard } from '@/renderer/components/SubjectCard';
 import { CanSkipModal } from '@/renderer/components/CanSkipModal';
 import { AddSubjectModal } from '@/renderer/components/AddSubjectModal';
+import { AppShell } from '@/renderer/components/AppShell';
+import { getAttendanceTone, getToneClasses } from '@/renderer/utils/ui';
 import type { Subject } from '@/shared/types';
 import type { CalculationResult } from '@/renderer/utils/calculationEngine';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+    theme: 'light' | 'dark';
+    onToggleTheme: () => void;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ theme, onToggleTheme }) => {
     const { subjects, overallAttendance, timetable, fetchSubjects, fetchTimetable, addSubject, updateAttendance, setView } = useAppStore();
     const [skipModalSubject, setSkipModalSubject] = useState<(Subject & CalculationResult) | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -20,8 +27,8 @@ export const Dashboard: React.FC = () => {
     }, [fetchSubjects, fetchTimetable]);
 
     const today = DAYS[new Date().getDay()];
+    const overallTone = getToneClasses(getAttendanceTone(overallAttendance));
 
-    // Filter subjects for today
     const todaysSubjects = subjects.filter(subject =>
         timetable && timetable.some(entry => entry.day === today && entry.subject_id === subject.id)
     );
@@ -48,64 +55,73 @@ export const Dashboard: React.FC = () => {
     };
 
     return (
-        <motion.div
-            className="p-8 max-w-7xl mx-auto pb-24"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+        <AppShell
+            title="Today"
+            eyebrow="Student planner"
+            theme={theme}
+            onToggleTheme={onToggleTheme}
+            action={(
+                <button className="btn btn-primary" onClick={() => setIsAddModalOpen(true)}>
+                    Add Subject
+                </button>
+            )}
         >
-            <header className="flex justify-between items-center mb-8">
-                <div>
-                    <div className="flex items-baseline gap-3">
-                        <h1 className="text-4xl font-bold tracking-tight mb-2">AttendSafe</h1>
-                        <span className="text-sm px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">v1.0</span>
+            <motion.div
+                className="space-y-6"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+            >
+                <section className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
+                    <div className="panel overflow-hidden p-6">
+                        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">{today}'s schedule</p>
+                                <h2 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">
+                                    {todaysSubjects.length > 0 ? 'Your attendance plan is ready.' : 'No classes are planned today.'}
+                                </h2>
+                                <p className="mt-3 max-w-xl text-muted-foreground">
+                                    {todaysSubjects.length > 0
+                                        ? 'Mark each class as it happens and keep your safe-to-skip count honest.'
+                                        : 'Add subjects to your timetable so Today can show what needs attention.'}
+                                </p>
+                            </div>
+                            <div className="rounded-lg bg-accent px-4 py-3 text-accent-foreground">
+                                <p className="text-sm font-semibold">Today</p>
+                                <p className="text-2xl font-bold">{todaysSubjects.length} classes</p>
+                            </div>
+                        </div>
                     </div>
-                    <p className="text-muted-foreground">
-                        {overallAttendance >= 75 ? "“You’re doing okay”" : "“Keep an eye on attendance”"}
-                    </p>
-                </div>
-                <div className="flex gap-4">
-                    <button
-                        onClick={() => setView('settings')}
-                        className="px-4 py-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-                    >
-                        Settings
+
+                    <div className="panel p-6">
+                        <p className="text-sm font-semibold text-muted-foreground">Overall attendance</p>
+                        <p className={`mt-3 text-5xl font-bold ${overallTone.text}`}>{overallAttendance}%</p>
+                        <p className="mt-3 text-sm text-muted-foreground">
+                            {overallAttendance >= 75 ? 'You are above the common 75% target.' : 'Review low subjects before skipping.'}
+                        </p>
+                    </div>
+                </section>
+
+                <section className="grid gap-3 sm:grid-cols-2">
+                    <button className="panel p-5 text-left transition-colors hover:bg-accent" onClick={() => setView('all-subjects')}>
+                        <p className="text-lg font-bold">All subjects</p>
+                        <p className="mt-1 text-sm text-muted-foreground">Review every course and update attendance quickly.</p>
                     </button>
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2"
-                    >
-                        <span>+</span> Add Subject
+                    <button className="panel p-5 text-left transition-colors hover:bg-accent" onClick={() => setView('timetable-editor')}>
+                        <p className="text-lg font-bold">Weekly timetable</p>
+                        <p className="mt-1 text-sm text-muted-foreground">Choose which subjects happen on each day.</p>
                     </button>
-                </div>
-            </header>
+                </section>
 
-            {/* Navigation / Quick Actions */}
-            <div className="flex gap-4 mb-8">
-                <button
-                    onClick={() => setView('all-subjects')}
-                    className="flex-1 p-4 bg-card border rounded-xl hover:bg-accent/50 transition-colors text-left"
-                >
-                    <h3 className="font-semibold">📚 All Subjects</h3>
-                    <p className="text-sm text-muted-foreground">View and manage all your courses</p>
-                </button>
-                <button
-                    onClick={() => setView('timetable-editor')}
-                    className="flex-1 p-4 bg-card border rounded-xl hover:bg-accent/50 transition-colors text-left"
-                >
-                    <h3 className="font-semibold">📅 Edit Timetable</h3>
-                    <p className="text-sm text-muted-foreground">Setup your weekly schedule</p>
-                </button>
-            </div>
-
-            <section className="mb-8">
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                    <span className="text-primary">Today's Schedule</span>
-                    <span className="text-muted-foreground text-lg font-normal">({today})</span>
-                </h2>
-
+                <section>
+                    <div className="mb-4 flex items-end justify-between gap-4">
+                        <div>
+                            <h2 className="text-2xl font-bold">Today's classes</h2>
+                            <p className="text-sm text-muted-foreground">Use quick actions when a class ends.</p>
+                        </div>
+                    </div>
                 {todaysSubjects.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                         <AnimatePresence>
                             {todaysSubjects.map((subject) => (
                                 <SubjectCard
@@ -120,18 +136,19 @@ export const Dashboard: React.FC = () => {
                         </AnimatePresence>
                     </div>
                 ) : (
-                    <div className="p-12 text-center border-2 border-dashed rounded-xl bg-muted/10">
-                        <h3 className="text-xl font-medium mb-2">No classes today! 🎉</h3>
-                        <p className="text-muted-foreground mb-4">Enjoy your free time or use this time to study.</p>
+                    <div className="panel border-dashed p-8 text-center">
+                        <h3 className="text-xl font-bold">No classes today</h3>
+                        <p className="mx-auto mt-2 max-w-md text-muted-foreground">If this looks wrong, update your weekly timetable and Today will stay in sync.</p>
                         <button
                             onClick={() => setView('timetable-editor')}
-                            className="text-primary hover:underline"
+                            className="btn btn-primary mt-5"
                         >
-                            Is this wrong? Edit your timetable
+                            Edit timetable
                         </button>
                     </div>
                 )}
-            </section>
+                </section>
+            </motion.div>
 
             <CanSkipModal
                 isOpen={!!skipModalSubject}
@@ -144,6 +161,6 @@ export const Dashboard: React.FC = () => {
                 onClose={() => setIsAddModalOpen(false)}
                 onAdd={handleAddSubject}
             />
-        </motion.div>
+        </AppShell>
     );
 };

@@ -19,33 +19,35 @@ export const AddSubjectModal: React.FC<AddSubjectModalProps> = ({ isOpen, onClos
         if (name && total >= 0 && attended >= 0 && minReq > 0) {
             onAdd(name, total, attended, minReq, semesterTotal || 0);
             onClose();
-            // Reset
             setName('');
             setTotal(0);
             setAttended(0);
+            setSemesterTotal(0);
+            setMinReq(75);
         }
     };
 
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="bg-background border rounded-xl shadow-lg w-full max-w-md overflow-hidden"
+                        className="panel w-full max-w-md overflow-hidden"
                     >
                         <div className="p-6">
-                            <h2 className="text-2xl font-bold mb-4">Add Subject</h2>
+                            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">New course</p>
+                            <h2 className="mb-5 mt-2 text-2xl font-bold">Add Subject</h2>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Subject Name</label>
+                                    <label className="label">Subject Name</label>
                                     <input
                                         type="text"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        className="w-full px-3 py-2 rounded-md bg-muted border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                                        className="field"
                                         placeholder="e.g. Mathematics"
                                         autoFocus
                                         required
@@ -54,22 +56,22 @@ export const AddSubjectModal: React.FC<AddSubjectModalProps> = ({ isOpen, onClos
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">Classes Held So Far</label>
+                                        <label className="label">Classes Held</label>
                                         <input
                                             type="number"
                                             value={total}
                                             onChange={(e) => setTotal(parseInt(e.target.value) || 0)}
-                                            className="w-full px-3 py-2 rounded-md bg-muted border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                                            className="field"
                                             min="0"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">Attended</label>
+                                        <label className="label">Attended</label>
                                         <input
                                             type="number"
                                             value={attended}
                                             onChange={(e) => setAttended(parseInt(e.target.value) || 0)}
-                                            className="w-full px-3 py-2 rounded-md bg-muted border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                                            className="field"
                                             min="0"
                                             max={total}
                                         />
@@ -77,25 +79,25 @@ export const AddSubjectModal: React.FC<AddSubjectModalProps> = ({ isOpen, onClos
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Total Classes in Semester (Predicted)</label>
+                                    <label className="label">Total Classes This Semester</label>
                                     <input
                                         type="number"
                                         value={semesterTotal}
                                         onChange={(e) => setSemesterTotal(parseInt(e.target.value) || 0)}
-                                        className="w-full px-3 py-2 rounded-md bg-muted border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                                        min={total} // Cannot be less than classes held
+                                        className="field"
+                                        min={total}
                                         placeholder="Optional (e.g. 50)"
                                     />
-                                    <p className="text-xs text-muted-foreground mt-1">Used to predict how many classes you can safely skip.</p>
+                                    <p className="mt-1 text-xs text-muted-foreground">Used to estimate how many classes you can miss.</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Min Required %</label>
+                                    <label className="label">Minimum Required %</label>
                                     <input
                                         type="number"
                                         value={minReq}
                                         onChange={(e) => setMinReq(parseInt(e.target.value) || 0)}
-                                        className="w-full px-3 py-2 rounded-md bg-muted border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                                        className="field"
                                         min="0"
                                         max="100"
                                     />
@@ -110,17 +112,13 @@ export const AddSubjectModal: React.FC<AddSubjectModalProps> = ({ isOpen, onClos
                                 )}
 
                                 <div className="flex gap-2 justify-end mt-6">
-                                    <button
-                                        type="button"
-                                        onClick={onClose}
-                                        className="px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors"
-                                    >
+                                    <button type="button" onClick={onClose} className="btn btn-ghost">
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={!name || attended > total}
-                                        className="px-4 py-2 text-sm font-medium bg-foreground text-background rounded-md hover:bg-foreground/90 transition-colors disabled:opacity-50"
+                                        className="btn btn-primary"
                                     >
                                         Add Subject
                                     </button>

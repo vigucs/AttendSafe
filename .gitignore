@@ -14,6 +14,8 @@ release
 .env
 .env.local
 *.local
+build/.icon-*
+build/icon.iconset
 
 # Editor directories and files
 .vscode/*

@@ -1,73 +1,86 @@
-# React + TypeScript + Vite
+# AttendSafe
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+AttendSafe is a desktop attendance planner for students. Add your subjects, mark classes as present or missed, build a weekly timetable, and see whether you can safely skip a class without falling below your required attendance.
 
-Currently, two official plugins are available:
+## Download
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Get the latest app from GitHub Releases:
 
-## React Compiler
+- [Download for Windows](https://github.com/vigucs/AttendSafe/releases/latest/download/AttendSafe-Windows-Installer.exe)
+- [Download for macOS](https://github.com/vigucs/AttendSafe/releases/latest/download/AttendSafe-macOS.dmg)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Windows users can run the installer directly. macOS builds are unsigned for now, so macOS may ask you to approve the app in System Settings > Privacy & Security the first time you open it.
 
-## Expanding the ESLint configuration
+## What You Can Do
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Track total, attended, and missed classes for each subject.
+- See your current attendance percentage and required minimum.
+- Check how many classes you can miss before dropping below your goal.
+- See how many classes you need to attend to recover.
+- Build a weekly timetable so Today only shows relevant classes.
+- Simulate future attendance from the subject detail screen.
+- Switch between light and dark themes.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Local Data
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+AttendSafe stores your data locally on your computer in the Electron app data folder. It does not require an account or cloud sync.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Developer Setup
+
+Install dependencies:
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Run the desktop app in development:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+Run tests:
+
+```bash
+npm test -- --run
+```
+
+Build installers for the current platform:
+
+```bash
+npm run build
+```
+
+Build platform-specific installers:
+
+```bash
+npm run build:win
+npm run build:mac
+```
+
+## Release Process
+
+Releases are created from version tags.
+
+1. Update the version in `package.json`.
+2. Commit the change.
+3. Create a tag, for example:
+
+```bash
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+GitHub Actions will run tests, build the Windows and macOS installers, and attach them to the GitHub Release.
+
+## Tech Stack
+
+- React 19
+- TypeScript
+- Vite
+- Electron
+- Electron Builder
+- Tailwind CSS
+- Zustand
+- better-sqlite3
+- Vitest

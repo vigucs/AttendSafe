@@ -4,26 +4,50 @@
 
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    color-scheme: light;
+    --background: #f7f4ec;
+    --foreground: #202423;
+    --card: #fffdf7;
+    --card-foreground: #202423;
+    --popover: #fffdf7;
+    --popover-foreground: #202423;
+    --primary: #25786b;
+    --primary-foreground: #ffffff;
+    --secondary: #ece7dc;
+    --secondary-foreground: #2d3432;
+    --muted: #eee9df;
+    --muted-foreground: #6f7673;
+    --accent: #dae9e5;
+    --accent-foreground: #173f39;
+    --destructive: #d64550;
+    --destructive-foreground: #ffffff;
+    --border: #ddd5c8;
+    --input: #f3eee5;
+    --ring: #25786b;
     --radius: 0.5rem;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --background: #101413;
+    --foreground: #f6f3ec;
+    --card: #171d1b;
+    --card-foreground: #f6f3ec;
+    --popover: #171d1b;
+    --popover-foreground: #f6f3ec;
+    --primary: #7bd6c5;
+    --primary-foreground: #0f2924;
+    --secondary: #232b29;
+    --secondary-foreground: #f6f3ec;
+    --muted: #222927;
+    --muted-foreground: #a7b0ac;
+    --accent: #1c3732;
+    --accent-foreground: #d9faf2;
+    --destructive: #f07178;
+    --destructive-foreground: #2e0f12;
+    --border: #2b3532;
+    --input: #202724;
+    --ring: #7bd6c5;
   }
 }
 
@@ -33,5 +57,37 @@
   }
   body {
     @apply bg-background text-foreground;
+    min-width: 320px;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-lg border border-border bg-card text-card-foreground shadow-soft;
+  }
+
+  .btn {
+    @apply inline-flex min-h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:opacity-90;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-muted;
+  }
+
+  .btn-ghost {
+    @apply text-muted-foreground hover:bg-muted hover:text-foreground;
+  }
+
+  .field {
+    @apply w-full rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring;
+  }
+
+  .label {
+    @apply mb-1 block text-sm font-semibold text-foreground;
   }
 }

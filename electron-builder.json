@@ -2,18 +2,41 @@
     "appId": "com.attend.safe",
     "productName": "AttendSafe",
     "directories": {
-        "output": "dist-electron"
+        "output": "release",
+        "buildResources": "build"
     },
     "files": [
         "dist/**/*",
         "dist-electron/**/*",
         "package.json"
     ],
+    "publish": {
+        "provider": "github",
+        "owner": "vigucs",
+        "repo": "AttendSafe"
+    },
     "win": {
-        "target": "nsis"
+        "target": "nsis",
+        "icon": "build/icon.ico",
+        "artifactName": "AttendSafe-Windows-Installer.exe"
+    },
+    "mac": {
+        "target": [
+            "dmg",
+            "zip"
+        ],
+        "icon": "build/icon.icns",
+        "category": "public.app-category.education",
+        "artifactName": "AttendSafe-macOS.${ext}"
+    },
+    "dmg": {
+        "artifactName": "AttendSafe-macOS.dmg"
     },
     "nsis": {
-        "oneClick": false,
-        "allowToChangeInstallationDirectory": true
+        "oneClick": true,
+        "allowToChangeInstallationDirectory": false,
+        "createDesktopShortcut": true,
+        "createStartMenuShortcut": true,
+        "shortcutName": "AttendSafe"
     }
 }

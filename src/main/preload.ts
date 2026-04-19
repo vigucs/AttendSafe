@@ -1,26 +1,29 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { AttendanceLog, CollegeRules, Settings, Subject } from '@/shared/types';
+
+type NewSubject = Omit<Subject, 'id'>;
+type NewAttendanceLog = Omit<AttendanceLog, 'id'>;
 
 contextBridge.exposeInMainWorld('electronAPI', {
     // Subjects
     getSubjects: () => ipcRenderer.invoke('get-subjects'),
-    addSubject: (subject: any) => ipcRenderer.invoke('add-subject', subject),
-    updateSubject: (subject: any) => ipcRenderer.invoke('update-subject', subject),
+    addSubject: (subject: NewSubject) => ipcRenderer.invoke('add-subject', subject),
+    updateSubject: (subject: Subject) => ipcRenderer.invoke('update-subject', subject),
     deleteSubject: (id: string) => ipcRenderer.invoke('delete-subject', id),
 
     // Logs
     getLogs: (subjectId: string) => ipcRenderer.invoke('get-logs', subjectId),
-    addLog: (log: any) => ipcRenderer.invoke('add-log', log),
+    addLog: (log: NewAttendanceLog) => ipcRenderer.invoke('add-log', log),
 
     // Settings
     getSettings: () => ipcRenderer.invoke('get-settings'),
-    saveSetting: (key: string, value: any) => ipcRenderer.invoke('save-setting', key, value),
+    saveSetting: (key: string, value: Settings['value']) => ipcRenderer.invoke('save-setting', key, value),
 
     // College Rules
-    // College Rules
     getCollegeRules: () => ipcRenderer.invoke('get-college-rules'),
-    saveCollegeRules: (rules: any) => ipcRenderer.invoke('save-college-rules', rules),
+    saveCollegeRules: (rules: CollegeRules) => ipcRenderer.invoke('save-college-rules', rules),
 
     // Timetable
     getTimetable: () => ipcRenderer.invoke('get-timetable'),
-    saveTimetable: (entries: any[]) => ipcRenderer.invoke('save-timetable', entries),
+    saveTimetable: (entries: { day: string; subject_id: string }[]) => ipcRenderer.invoke('save-timetable', entries),
 });

@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {
+      boxShadow: {
+        soft: "0 14px 36px -28px rgb(32 36 35 / 0.45)",
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",

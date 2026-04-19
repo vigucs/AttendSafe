@@ -2,8 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/renderer/store/useAppStore';
 import { simulateFuture } from '@/renderer/utils/calculationEngine';
+import { AppShell } from '@/renderer/components/AppShell';
+import { cn, getToneClasses } from '@/renderer/utils/ui';
 
-export const SubjectDetail: React.FC = () => {
+interface SubjectDetailProps {
+    theme: 'light' | 'dark';
+    onToggleTheme: () => void;
+}
+
+export const SubjectDetail: React.FC<SubjectDetailProps> = ({ theme, onToggleTheme }) => {
     const { subjects, selectedSubjectId, setView, updateAttendance } = useAppStore();
     const subject = subjects.find(s => s.id === selectedSubjectId);
 
@@ -30,80 +37,83 @@ export const SubjectDetail: React.FC = () => {
         }
     }, [attendNext, missNext, subject]);
 
-    if (!subject) return (
-        <div className="p-8 text-center text-muted-foreground">
-            Subject not found. <button onClick={() => setView('dashboard')} className="underline">Go back</button>
-        </div>
-    );
+    if (!subject) {
+        return (
+            <AppShell title="Subject" theme={theme} onToggleTheme={onToggleTheme} onBack={() => setView('dashboard')}>
+                <div className="panel p-8 text-center">
+                    <h2 className="text-xl font-bold">Subject not found</h2>
+                    <p className="mt-2 text-muted-foreground">Go back and choose a saved subject.</p>
+                    <button onClick={() => setView('dashboard')} className="btn btn-primary mt-5">Back to Today</button>
+                </div>
+            </AppShell>
+        );
+    }
+
+    const tone = getToneClasses(subject.status);
+    const missed = subject.total_classes - subject.attended_classes;
 
     return (
-        <motion.div
-            className="p-8 max-w-4xl mx-auto pb-24"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.4 }}
+        <AppShell
+            title={subject.name}
+            eyebrow="Subject detail"
+            theme={theme}
+            onToggleTheme={onToggleTheme}
+            onBack={() => setView('dashboard')}
         >
-            <button
-                onClick={() => setView('dashboard')}
-                className="mb-8 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+            <motion.div
+                className="space-y-6"
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -16 }}
+                transition={{ duration: 0.35 }}
             >
-                ← Back to Dashboard
-            </button>
+                <section className="panel overflow-hidden p-6">
+                    <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <span className={cn("rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide ring-1", tone.soft)}>
+                                {subject.status}
+                            </span>
+                            <h2 className="mt-4 text-4xl font-bold tracking-tight">{subject.name}</h2>
+                            <p className="mt-2 text-muted-foreground">Required attendance is {subject.min_required_percent}%.</p>
+                        </div>
+                        <div className="md:text-right">
+                            <p className={cn("text-6xl font-bold tracking-tight", tone.text)}>{subject.currentPercent}%</p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                {subject.attended_classes} attended, {Math.max(0, missed)} missed
+                            </p>
+                        </div>
+                    </div>
+                </section>
 
-            <div className="flex flex-col md:flex-row gap-8 justify-between items-start mb-12">
-                <div>
-                    <h1 className="text-4xl font-bold tracking-tight mb-2">{subject.name}</h1>
-                    <p className="text-xl text-muted-foreground">
-                        Status: <span className={
-                            subject.status === 'safe' ? 'text-green-500' :
-                                subject.status === 'warning' ? 'text-yellow-500' : 'text-red-500'
-                        }>{subject.status.toUpperCase()}</span>
-                    </p>
-                </div>
+                <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="panel p-6">
+                        <h3 className="text-lg font-bold">Class count</h3>
+                        <div className="mt-5 space-y-3">
+                            {[
+                                ['Total classes', subject.total_classes],
+                                ['Attended', subject.attended_classes],
+                                ['Missed', Math.max(0, missed)],
+                                ['Semester estimate', subject.semester_total_classes || 'Not set'],
+                            ].map(([label, value]) => (
+                                <div className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0" key={label}>
+                                    <span className="text-sm text-muted-foreground">{label}</span>
+                                    <span className="font-bold">{value}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-5 rounded-lg bg-muted p-4 text-sm">
+                            {subject.status === 'safe'
+                                ? `You can miss ${subject.canSkip} more classes and stay above your goal.`
+                                : `Attend the next ${subject.classesToRecover} classes to recover.`}
+                        </div>
+                    </div>
 
-                <div className="text-right">
-                    <div className="text-6xl font-bold mb-1">
-                        <span className={
-                            subject.currentPercent >= subject.min_required_percent ? 'text-green-500' : 'text-red-500'
-                        }>{subject.currentPercent}%</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">Required: {subject.min_required_percent}%</p>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                {/* Stats */}
-                <div className="p-6 bg-card rounded-xl border space-y-4">
-                    <h3 className="font-semibold text-lg">Statistics</h3>
-                    <div className="flex justify-between border-b pb-2">
-                        <span>Total Classes</span>
-                        <span className="font-mono">{subject.total_classes}</span>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                        <span>Attended</span>
-                        <span className="font-mono text-green-500">{subject.attended_classes}</span>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                        <span>Missed</span>
-                        <span className="font-mono text-red-500">{subject.total_classes - subject.attended_classes}</span>
-                    </div>
-                    <div className="pt-2">
-                        {subject.status === 'safe' ? (
-                            <p className="text-green-600">You can safely miss <span className="font-bold">{subject.canSkip}</span> more classes.</p>
-                        ) : (
-                            <p className="text-red-600">You need to attend <span className="font-bold">{subject.classesToRecover}</span> more classes to recover.</p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Simulator */}
-                <div className="p-6 bg-card rounded-xl border">
-                    <h3 className="font-semibold text-lg mb-4">Future Simulator</h3>
+                    <div className="panel p-6">
+                        <h3 className="text-lg font-bold">Future simulator</h3>
 
                     <div className="space-y-6">
                         <div>
-                            <label className="block text-sm mb-2 flex justify-between">
+                            <label className="mb-2 flex justify-between text-sm">
                                 <span>If I attend next:</span>
                                 <span className="font-bold">{attendNext}</span>
                             </label>
@@ -112,12 +122,12 @@ export const SubjectDetail: React.FC = () => {
                                 min="0" max="20"
                                 value={attendNext}
                                 onChange={(e) => setAttendNext(parseInt(e.target.value))}
-                                className="w-full accent-green-500"
+                                className="w-full accent-emerald-500"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm mb-2 flex justify-between">
+                            <label className="mb-2 flex justify-between text-sm">
                                 <span>If I miss next:</span>
                                 <span className="font-bold">{missNext}</span>
                             </label>
@@ -126,35 +136,36 @@ export const SubjectDetail: React.FC = () => {
                                 min="0" max="20"
                                 value={missNext}
                                 onChange={(e) => setMissNext(parseInt(e.target.value))}
-                                className="w-full accent-red-500"
+                                className="w-full accent-rose-500"
                             />
                         </div>
 
-                        <div className="p-4 bg-muted rounded-lg text-center">
+                        <div className="rounded-lg bg-muted p-4 text-center">
                             <p className="text-sm mb-1">Predicted Attendance</p>
-                            <p className={`text-3xl font-bold ${predictedPercent >= subject.min_required_percent ? 'text-green-500' : 'text-red-500'
+                            <p className={`text-3xl font-bold ${predictedPercent >= subject.min_required_percent ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300'
                                 }`}>
                                 {predictedPercent}%
                             </p>
                         </div>
                     </div>
                 </div>
-            </div>
+                </section>
 
-            <div className="flex gap-4">
+            <div className="grid gap-3 sm:grid-cols-2">
                 <button
                     onClick={() => updateAttendance(subject.id, 'present')}
-                    className="flex-1 py-4 bg-green-500/10 text-green-600 rounded-xl font-bold hover:bg-green-500/20 transition-colors"
+                    className="rounded-lg bg-emerald-50 px-4 py-4 font-bold text-emerald-700 transition-colors hover:bg-emerald-100 dark:bg-emerald-500/12 dark:text-emerald-200 dark:hover:bg-emerald-500/20"
                 >
                     Mark Present Today
                 </button>
                 <button
                     onClick={() => updateAttendance(subject.id, 'absent')}
-                    className="flex-1 py-4 bg-red-500/10 text-red-600 rounded-xl font-bold hover:bg-red-500/20 transition-colors"
+                    className="rounded-lg bg-rose-50 px-4 py-4 font-bold text-rose-700 transition-colors hover:bg-rose-100 dark:bg-rose-500/12 dark:text-rose-200 dark:hover:bg-rose-500/20"
                 >
                     Mark Absent Today
                 </button>
             </div>
-        </motion.div>
+            </motion.div>
+        </AppShell>
     );
 };

@@ -11,22 +11,30 @@ export const BootupAnimation: React.FC<BootupAnimationProps> = ({ onComplete }) 
     useEffect(() => {
         const timer = setTimeout(() => {
             onComplete();
-        }, 2500); // slightly longer to enjoy animation
+        }, 1800);
 
         return () => clearTimeout(timer);
     }, [onComplete]);
 
     return (
         <motion.div
-            className="fixed inset-0 bg-background flex flex-col items-center justify-center z-50 text-foreground"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background text-foreground"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
         >
-            <div className="relative">
+            <div className="relative flex flex-col items-center">
+                <motion.div
+                    className="mb-5 flex h-16 w-16 items-center justify-center rounded-lg bg-primary text-xl font-bold text-primary-foreground shadow-soft"
+                    initial={{ opacity: 0, y: 12, scale: 0.94 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.45, ease: "easeOut" }}
+                >
+                    AS
+                </motion.div>
                 <motion.h1
-                    className="text-6xl font-bold tracking-tighter"
+                    className="text-5xl font-bold tracking-tight sm:text-6xl"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
@@ -39,12 +47,12 @@ export const BootupAnimation: React.FC<BootupAnimationProps> = ({ onComplete }) 
             <AnimatePresence>
                 {showSubtext && (
                     <motion.p
-                        className="mt-4 text-xl text-muted-foreground font-light"
+                        className="mt-4 px-6 text-center text-lg text-muted-foreground"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                     >
-                        Know your attendance. Stay stress-free.
+                        Know what to attend next.
                     </motion.p>
                 )}
             </AnimatePresence>
